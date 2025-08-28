@@ -2,9 +2,7 @@
 #include <QPainter>
 #include <QtMath>
 
-WaveformWidget::WaveformWidget(QWidget *parent)
-    : QWidget(parent),
-    m_maxSamples(44100 / 2) // ~0.5 s at 44.1 kHz
+WaveformWidget::WaveformWidget(QWidget *parent) : QWidget(parent), m_maxSamples(44100 / 2) // ~0.5 s at 44.1 kHz
 {
     setAttribute(Qt::WA_OpaquePaintEvent);
     setAutoFillBackground(false);
@@ -17,14 +15,16 @@ WaveformWidget::WaveformWidget(QWidget *parent)
     m_timer.start();
 }
 
-WaveformWidget::~WaveformWidget() {
+WaveformWidget::~WaveformWidget()
+{
     if (m_audio)
     {
         m_audio->stop();
     }
 }
 
-void WaveformWidget::initAudio() {
+void WaveformWidget::initAudio()
+{
     m_deviceInfo = QMediaDevices::defaultAudioInput();
 
     QAudioFormat fmt;
@@ -32,7 +32,8 @@ void WaveformWidget::initAudio() {
     fmt.setChannelCount(2);
     fmt.setSampleFormat(QAudioFormat::Float); // Signed 16-bit
 
-    if (!m_deviceInfo.isFormatSupported(fmt)) {
+    if (!m_deviceInfo.isFormatSupported(fmt))
+    {
         // Fallback to device preferred format (we will only handle Int16 below)
         fmt = m_deviceInfo.preferredFormat();
     }
@@ -42,17 +43,15 @@ void WaveformWidget::initAudio() {
     m_capture = m_audio->start();
 
     // Pull-mode: read from the returned QIODevice
-    connect(m_capture, &QIODevice::readyRead, this, [this]() {
+    connect(m_capture, &QIODevice::readyRead, this, [this]()
+    {
         const QByteArray data = m_capture->readAll();
         appendSamples(data);
     });
 }
 
-void WaveformWidget::appendSamples(const QByteArray &bytes) {
-    // if (m_format.sampleFormat() != QAudioFormat::Int16) {
-    //     return; // keep code simple: only draw 16-bit
-    // }
-    const int channels = qMax(1, m_format.channelCount());
+void WaveformWidget::appendSamples(const QByteArray &bytes)
+{
     const float *src = reinterpret_cast<const float*>(bytes.constData());
     const int frames = bytes.size() / (sizeof(float) * m_format.channelCount());
 
@@ -60,7 +59,8 @@ void WaveformWidget::appendSamples(const QByteArray &bytes) {
     m_samples.reserve(qMin(m_maxSamples * 2, m_samples.size() + frames));
 
     // Downmix to mono (or just pass-through if already mono)
-    for (int i = 0; i < frames; ++i) {
+    for (int i = 0; i < frames; ++i)
+    {
         float sum = 0.f;
         for (int c = 0; c < m_format.channelCount(); ++c)
             sum += *src++;
@@ -69,13 +69,15 @@ void WaveformWidget::appendSamples(const QByteArray &bytes) {
     }
 
     // Keep only the most recent m_maxSamples
-    if (m_samples.size() > m_maxSamples) {
+    if (m_samples.size() > m_maxSamples)
+    {
         const int removeCount = m_samples.size() - m_maxSamples;
         m_samples.erase(m_samples.begin(), m_samples.begin() + removeCount);
     }
 }
 
-void WaveformWidget::paintEvent(QPaintEvent *) {
+void WaveformWidget::paintEvent(QPaintEvent *)
+{
     QPainter p(this);
     p.fillRect(rect(), palette().window());
 
@@ -103,7 +105,8 @@ void WaveformWidget::paintEvent(QPaintEvent *) {
     poly.reserve(N / step + 1);
 
     const double amp = (h / 2.0) - 2.0;
-    for (int i = 0; i < N; i += step) {
+    for (int i = 0; i < N; i += step)
+    {
         const double x = (double)i / (N - 1) * (w - 1);
         const double y = midY - (local[i] / 32768.0) * amp;
         poly << QPointF(x, y);
