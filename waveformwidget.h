@@ -14,7 +14,8 @@
 #include <QAudioDeviceInfo>
 #endif
 
-class WaveformWidget : public QWidget {
+class WaveformWidget : public QWidget
+{
 public:
     explicit WaveformWidget(QWidget *parent = nullptr);
     ~WaveformWidget();
@@ -31,16 +32,10 @@ private:
     QMutex          m_mutex;
     int             m_maxSamples; // how many samples to keep for drawing
 
-#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
     QAudioSource   *m_audio = nullptr;
     QAudioDevice    m_deviceInfo;
     QIODevice      *m_capture = nullptr;
     QAudioFormat    m_format;
-#else
-    QAudioInput    *m_audio = nullptr;
-    QIODevice      *m_capture = nullptr;
-    QAudioFormat    m_format;
-#endif
 
     QTimer          m_timer; // triggers repaint ~30 FPS
 };
