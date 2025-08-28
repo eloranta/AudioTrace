@@ -3,9 +3,9 @@
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-    WaveformWidget w;
-    w.setWindowTitle("Audio Trace (Qt)");
-    w.resize(900, 300);
-    w.show();
+    WaveformWidget widget;
+    widget.setWindowTitle("Audio Trace (Qt)");
+    widget.resize(900, 300);
+    widget.show();
     return app.exec();
 }
