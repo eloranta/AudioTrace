@@ -18,17 +18,13 @@ WaveformWidget::WaveformWidget(QWidget *parent)
 }
 
 WaveformWidget::~WaveformWidget() {
-    if (m_audio) {
-#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+    if (m_audio)
+    {
         m_audio->stop();
-#else
-        m_audio->stop();
-#endif
     }
 }
 
 void WaveformWidget::initAudio() {
-#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
     m_deviceInfo = QMediaDevices::defaultAudioInput();
 
     QAudioFormat fmt;
@@ -50,48 +46,15 @@ void WaveformWidget::initAudio() {
         const QByteArray data = m_capture->readAll();
         appendSamples(data);
     });
-#else
-    QAudioDeviceInfo info = QAudioDeviceInfo::defaultInputDevice();
-
-    QAudioFormat fmt;
-    fmt.setSampleRate(44100);
-    fmt.setChannelCount(1);
-    fmt.setSampleSize(16);
-    fmt.setCodec("audio/pcm");
-    fmt.setByteOrder(QAudioFormat::LittleEndian);
-    fmt.setSampleType(QAudioFormat::SignedInt);
-
-    if (!info.isFormatSupported(fmt)) {
-        fmt = info.nearestFormat(fmt);
-    }
-    m_format = fmt;
-
-    m_audio = new QAudioInput(info, m_format, this);
-    m_capture = m_audio->start();
-
-    connect(m_capture, &QIODevice::readyRead, this, [this]() {
-        const QByteArray data = m_capture->readAll();
-        appendSamples(data);
-    });
-#endif
 }
 
 void WaveformWidget::appendSamples(const QByteArray &bytes) {
-#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
     // if (m_format.sampleFormat() != QAudioFormat::Int16) {
     //     return; // keep code simple: only draw 16-bit
     // }
     const int channels = qMax(1, m_format.channelCount());
     const float *src = reinterpret_cast<const float*>(bytes.constData());
     const int frames = bytes.size() / (sizeof(float) * m_format.channelCount());
-#else
-    if (m_format.sampleSize() != 16) {
-        return; // keep code simple: only draw 16-bit
-    }
-    const int channels = qMax(1, m_format.channelCount());
-    const int16_t *src = reinterpret_cast<const int16_t*>(bytes.constData());
-    const int frames = bytes.size() / (int)(sizeof(int16_t) * channels);
-#endif
 
     QMutexLocker lock(&m_mutex);
     m_samples.reserve(qMin(m_maxSamples * 2, m_samples.size() + frames));
