@@ -2,6 +2,22 @@
 #include <QPainter>
 #include <QtMath>
 
+static QAudioDevice pickLineIn() {
+    const auto inputs = QMediaDevices::audioInputs();
+    for (const QAudioDevice &d : inputs) {
+        // Check common naming; adjust to your exact device string if needed
+        const QString name = d.description();
+        if (name.contains("Line In", Qt::CaseInsensitive) ||
+            name.contains("Line-In", Qt::CaseInsensitive) ||
+            name.contains("Line",    Qt::CaseInsensitive)) {
+            qInfo() << "Selected input device:" << name;
+            return d;
+        }
+    }
+    qWarning() << "No 'Line In' found; using default input instead.";
+    return QMediaDevices::defaultAudioInput();
+}
+
 WaveformWidget::WaveformWidget(QWidget *parent) : QWidget(parent), m_maxSamples(44100 / 2) // ~0.5 s at 44.1 kHz
 {
     setAttribute(Qt::WA_OpaquePaintEvent);
@@ -25,21 +41,27 @@ WaveformWidget::~WaveformWidget()
 
 void WaveformWidget::initAudio()
 {
+    qInfo() << "=== Available INPUT devices ===";
+    for (const QAudioDevice &d : QMediaDevices::audioInputs())
+        qInfo() << " -" << d.description() << "id=" << d.id();
+
     m_deviceInfo = QMediaDevices::defaultAudioInput();
+
+    QAudioDevice inDev = pickLineIn();
 
     QAudioFormat fmt;
     fmt.setSampleRate(48000);
     fmt.setChannelCount(2);
-    fmt.setSampleFormat(QAudioFormat::Float); // Signed 16-bit
+    fmt.setSampleFormat(QAudioFormat::Float);
 
     if (!m_deviceInfo.isFormatSupported(fmt))
     {
-        // Fallback to device preferred format (we will only handle Int16 below)
+        // Fallback to device preferred format
         fmt = m_deviceInfo.preferredFormat();
     }
     m_format = fmt;
 
-    m_audio = new QAudioSource(m_deviceInfo, m_format, this);
+    m_audio = new QAudioSource(inDev, m_format, this);
     m_capture = m_audio->start();
 
     // Pull-mode: read from the returned QIODevice

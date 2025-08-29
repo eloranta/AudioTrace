@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     auto *okBtn     = new QPushButton("OK", central);
     auto *cancelBtn = new QPushButton("Cancel", central);
-    auto *btnRow = new QHBoxLayout();
+    auto *btnRow    = new QHBoxLayout();
     btnRow->setSpacing(8);
     btnRow->addStretch();
     btnRow->addWidget(okBtn);
