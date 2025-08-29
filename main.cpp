@@ -1,11 +1,11 @@
 #include <QApplication>
-#include "waveformwidget.h"
+#include "mainwindow.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
-    WaveformWidget widget;
-    widget.setWindowTitle("Audio Trace");
-    widget.resize(900, 300);
-    widget.show();
+    MainWindow window;
+    window.setWindowTitle("Audio Trace");
+    window.resize(900, 300);
+    window.show();
     return app.exec();
 }
